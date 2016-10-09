@@ -63,8 +63,8 @@ class ParserController:
 
                 time.sleep(self.sleep)
                 i = i+1
-                if i>4:
-                    break
+                #if i>4:
+                #    break
 
             writer.save()
 
@@ -103,8 +103,8 @@ class ParserController:
                 time.sleep(self.sleep)
 
                 i = i + 1
-                if i > 5:
-                    break
+                #if i > 5:
+                #    break
 
         self.isRunning = False
         self.callback()
