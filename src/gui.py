@@ -159,7 +159,7 @@ class MainWindow:
 
         if self.selectYears.get()=="Designated" and self.yearEntry.get():
             try:
-                nums = self.yearEntry.get().split()
+                nums = self.yearEntry.get().split(",")
             except:
                 tkMessageBox.showerror(u'\u8acb\u4f9d\u7167\u683c\u5f0f\u8f38\u5165\u6307\u5b9a\u5e74\u4efd\uff0c\u5982 2014,2015,Present')
                 return
@@ -204,9 +204,12 @@ class MainWindow:
             self.controller.parseHierarchyData()
 
     def logProgress(self, text):
+        self.root.after(0, lambda: self.__logProgress__(text))
+		
+    def __logProgress__(self, text):
         self.edit_space.insert(INSERT, text + "\n")
         self.edit_space.see(Tkinter.END)
-
+		
     def isDone(self):
         self.start_button.config(state="active")
         tkMessageBox.showinfo(u'\u8a0a\u606f', u'\u5de5\u4f5c\u5b8c\u6210')
