@@ -9,7 +9,7 @@ import logging
 import sys
 
 sys.stderr = sys.stdout
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.WARNING)
 
 def main(args=None):
     """The main routine."""

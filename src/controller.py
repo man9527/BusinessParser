@@ -4,6 +4,9 @@ import writeexcel
 import filelist
 import collections
 import time
+import logging
+
+logger = logging.getLogger( __name__ )
 
 class ParserController:
     def __init__(self, paths, sleep, logger, callback, designatedYears):
@@ -66,7 +69,9 @@ class ParserController:
                 #if i>4:
                 #    break
 
+            self.logger("Writing to excel ...........................")
             writer.save()
+            self.logger("Writing to excel done")
 
         self.isRunning = False
         self.callback()
@@ -94,12 +99,15 @@ class ParserController:
                 try:
                     parser = companydataparser.CompanyDataParser(company.url, self.designatedYears)
                     hierarchy = parser.parseHierarchy()
+                    logger.debug("Get parse result")
                     self.__writeHierarchy__(company, hierarchy)
                     self.logger("End to parse " + company.name)
                 except Exception as e:
+                    logger.debug("Get exception")
                     self.logger("Failed to parse " + company.name)
-                    self.logger(e)
+                    self.logger(str(e))
 
+                logger.debug("Before sleep")
                 time.sleep(self.sleep)
 
                 i = i + 1

@@ -1,5 +1,6 @@
 from pyquery import PyQuery as pq
 import domainjob
+import Connector
 
 import logging
 
@@ -14,9 +15,13 @@ class HierarchyParser:
         return self.__doParse__(self.url)
 
     def __doParse__(self, url):
-        d = pq(url=url)
+        logger.debug("before pq:" + url)
+        d = pq(Connector.get(url))
+        logger.debug("after pq:" + url)
+
         p = d("#TreeView1 table")
 
+        logger.debug("parse element")
         for ele in p:
             tr=pq(ele)
             tdCount = tr("td").length
@@ -24,7 +29,7 @@ class HierarchyParser:
             if tdCount > 1:
                 tds = tr("td")
                 td1=pq(tds[tdCount-2]).html()
-                logger.debug(td1)
+
                 idStartIndex = td1.index("'")
                 idEndIndex = td1.index("'", idStartIndex+1)
                 companyId = td1[idStartIndex+1:idEndIndex]
@@ -46,11 +51,13 @@ class HierarchyParser:
                 current = domainjob.HNode(companyId, type, tdCount, companyName, city, state)
                 self.results.append(current)
 
+        logger.debug("end parse element")
         # build relation
         parent = {}
+        logger.debug("build relation")
 
         prev = None
-        logger.debug(url)
+        # logger.debug(url)
         for current in self.results:
             # handle the top node
             if prev==None and str(current.levelCount) not in parent:
@@ -63,5 +70,5 @@ class HierarchyParser:
                     current.parent=parent[str(current.levelCount)]
 
             prev=current
-
+        logger.debug("end build relation")
         return (self.results)

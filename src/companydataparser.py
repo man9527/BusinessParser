@@ -2,6 +2,7 @@ from pyquery import PyQuery as pq
 import collections
 import logging
 import hierarchyparser
+import Connector
 
 logger = logging.getLogger( 'first_logging' )
 
@@ -10,7 +11,7 @@ class CompanyDataParser:
     def __init__(self, url, designatedYears):
         self.url=url
 
-        self.d = pq(url=self.url)
+        self.d = pq(Connector.get(self.url))
 
         self.realYears = []
         self.__parseYear__()

@@ -5,11 +5,13 @@ import tkMessageBox
 import ScrolledText as tkst
 from threading import Thread
 import controller
+import Queue
 
 class MainWindow:
 
     def __init__(self):
         self.controller = None
+        self.logQ = Queue.Queue(maxsize=100)
 
     def show(self):
         self.root = root = Tkinter.Tk()  # create a Tk root window
@@ -170,7 +172,9 @@ class MainWindow:
         if result == 'no':
             return
 
+        self.edit_space.configure(state='normal')
         self.edit_space.delete('1.0', END)
+        self.edit_space.configure(state='disabled')
 
         if not self.sleepEntry.get():
             sleep=1
@@ -183,6 +187,7 @@ class MainWindow:
             target=self.__startInternal__)
 
         self.t.start()
+        self.root.after(100, lambda: self.logProgressAsync())
         self.check_thread()
 
     def check_thread(self):
@@ -193,7 +198,7 @@ class MainWindow:
             self.isDone()
     
     def doNothing(self):
-        print()
+        pass
 		
     def __startInternal__(self):
         self.start_button.config(state="disabled")
@@ -204,11 +209,28 @@ class MainWindow:
             self.controller.parseHierarchyData()
 
     def logProgress(self, text):
-        self.root.after(0, lambda: self.__logProgress__(text))
+        self.logQ.put(text)
+
+    def logProgressAsync(self):
+        while self.logQ.qsize():
+            try:
+                msg = self.logQ.get(0)
+                # Check contents of message and do whatever is needed. As a
+                # simple test, print it (in real life, you would
+                # suitably update the GUI's display in a richer fashion).
+                self.__logProgress__(msg)
+            except Queue.Empty:
+                # just on general principles, although we don't
+                # expect this branch to be taken in this case
+                pass
+
+        self.root.after(100, lambda: self.logProgressAsync())
 		
     def __logProgress__(self, text):
+        self.edit_space.configure(state='normal')
         self.edit_space.insert(INSERT, text + "\n")
         self.edit_space.see(Tkinter.END)
+        self.edit_space.configure(state='disabled')
 		
     def isDone(self):
         self.start_button.config(state="active")
