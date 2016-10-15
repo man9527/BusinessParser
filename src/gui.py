@@ -22,7 +22,7 @@ class MainWindow:
         parentFrame.pack(fill=X)
 
         w = 800  # width for the Tk root
-        h = 650  # height for the Tk root
+        h = 800  # height for the Tk root
 
         # get screen width and height
         ws = root.winfo_screenwidth()  # width of the screen
@@ -93,6 +93,21 @@ class MainWindow:
 
         Label(optionFrame3, text="(e.g. 2014,2015,Present)", bg="#e1ffd6").pack(side=LEFT)
 
+        optionFrameFilterCompany = Frame(parentFrame)
+        optionFrameFilterCompany.configure(borderwidth=3, bg="#e1ffd6");
+        optionFrameFilterCompany.pack(side=TOP, fill=BOTH)
+        Label(optionFrameFilterCompany, text=u'      \u6307\u5b9a\u516c\u53f8ID\uff1a', bg="#e1ffd6").pack(side=LEFT)
+
+        self.filter_company_entry = tkst.ScrolledText(
+            master=optionFrameFilterCompany,
+            wrap='word',  # wrap text at full words only
+            width=10,  # characters
+            height=3,  # text lines
+            bg='beige'  # background color of edit area
+        )
+        # self.edit_space.configure(state="disabled")
+        self.filter_company_entry.pack(padx=10, pady=10, fill=BOTH, expand=True)
+
         optionFrame5 = Frame(parentFrame)
         optionFrame5.configure(borderwidth=3, bg="#e1ffd6");
         optionFrame5.pack(side=TOP, fill=BOTH)
@@ -112,6 +127,25 @@ class MainWindow:
         Label(optionFrame4, text="    ", bg="#e1ffd6").pack(side=LEFT)
         self.cancel_button = Button(optionFrame4, text=u'\u53d6\u6d88', command=self.cancelCallBack)
         self.cancel_button.pack(side=LEFT)
+
+        separator = Frame(parentFrame)
+        separator.configure(height=2, bd=1, background="#e1ffd6", relief=SUNKEN)
+        # separator.pack(fill=X, padx=5, pady=5)
+
+        optionFrame6 = Frame(parentFrame)
+        optionFrame6.configure(borderwidth=3, bg="#e1ffd6");
+        # optionFrame6.pack(side=TOP, expand=NO, fill=BOTH)
+        # Label(optionFrame6, text=u'\u5931\u6557\u8655\u7406\uff1a', bg="#e1ffd6").pack(side=LEFT)
+
+        self.retry_button = Button(optionFrame6, text=u'\u6293\u53d6\u524d\u6b21\u5931\u6557\u7684\u516c\u53f8', command=self.retryCallBack)
+        self.retry_button.pack_forget() # (side=LEFT)
+        self.retry_button.config(state="disabled")
+
+        # Label(optionFrame6, text="    ", bg="#e1ffd6").pack(side=LEFT)
+
+        self.save_button = Button(optionFrame6, text=u'\u5c07\u5931\u6557\u516c\u53f8ID\u5b58\u6210\u6a94\u6848', command=self.saveFailedCompanies)
+        self.save_button.pack_forget() # .pack(side=LEFT)
+        self.save_button.config(state="disabled")
 
         logFrame = Frame(root)
         logFrame.configure(borderwidth=3);
@@ -169,22 +203,58 @@ class MainWindow:
             nums=[]
 
         result = tkMessageBox.askquestion(u'\u78ba\u5b9a', u'\u78ba\u5b9a\u958b\u59cb\u55ce\uff1f', icon='warning')
+
         if result == 'no':
             return
+        else:
+            self.root.after(0, lambda: self.__run_it__(nums))
+
+    def __run_it__(self, nums):
+        self.retry_button.config(state="disabled")
+        self.save_button.config(state="disabled")
 
         self.edit_space.configure(state='normal')
         self.edit_space.delete('1.0', END)
         self.edit_space.configure(state='disabled')
 
         if not self.sleepEntry.get():
-            sleep=1
+            sleep=0
         else:
             sleep=int(self.sleepEntry.get())
 
-        self.controller = controller.ParserController([self.fileEntry.get()], sleep, self.logProgress, self.doNothing, nums)
+        filterCompanies = []
+
+        if self.filter_company_entry.get(1.0, END).rstrip():
+            filterCompanies = self.filter_company_entry.get(1.0, END).rstrip().split(",")
+
+        self.controller = controller.ParserController([self.fileEntry.get()], sleep, self.logProgress, self.doNothing, nums, filterCompanies)
 
         self.t = Thread(
             target=self.__startInternal__)
+
+        self.t.start()
+        self.root.after(100, lambda: self.logProgressAsync())
+        self.check_thread()
+
+
+    def retryCallBack(self):
+        if not self.controller or not self.controller.failed_companies:
+            tkMessageBox.showerror(u'\u932f\u8aa4', u'\u4e26\u672a\u6709\u524d\u6b21\u5931\u6557\u7684\u516c\u53f8')
+            return
+
+        result = tkMessageBox.askquestion(u'\u78ba\u5b9a', u'\u78ba\u5b9a\u91cd\u6293\u524d\u6b21\u5931\u6557\u7684\u516c\u53f8\uff1f', icon='warning')
+        if result == 'no':
+            return
+        else:
+            self.root.after(0, self.__run_retry__)
+
+    def __run_retry__(self):
+        self.edit_space.configure(state='normal')
+        self.edit_space.delete('1.0', END)
+        self.edit_space.configure(state='disabled')
+
+        self.t = Thread(
+            target=self.__retryInternal__)
 
         self.t.start()
         self.root.after(100, lambda: self.logProgressAsync())
@@ -199,7 +269,11 @@ class MainWindow:
     
     def doNothing(self):
         pass
-		
+
+    def __retryInternal__(self):
+        self.start_button.config(state="disabled")
+        self.controller.parseHierarchyDataForFailedCompanies()
+
     def __startInternal__(self):
         self.start_button.config(state="disabled")
 
@@ -234,4 +308,18 @@ class MainWindow:
 		
     def isDone(self):
         self.start_button.config(state="active")
-        tkMessageBox.showinfo(u'\u8a0a\u606f', u'\u5de5\u4f5c\u5b8c\u6210')
+
+        if not self.controller.failed_companies:
+            self.retry_button.config(state="disabled")
+            self.save_button.config(state="disabled")
+            tkMessageBox.showinfo(u'\u8a0a\u606f', u'\u5de5\u4f5c\u5b8c\u6210')
+        else:
+            self.retry_button.config(state="active")
+            self.save_button.config(state="active")
+            tkMessageBox.showwarning(u'\u8a0a\u606f', u'\u5de5\u4f5c\u5b8c\u6210\u3002\u4f46\u6709\u672a\u80fd\u6210\u529f\u6293\u53d6\u7684\u516c\u53f8\uff0c\u53ef\u57f7\u884c\u91cd\u6293\u3002')
+            self.controller.saveFailedCompanies()
+
+    def saveFailedCompanies(self):
+        if self.controller and self.controller.failed_companies:
+            self.controller.saveFailedCompanies()
+            tkMessageBox.showinfo(u'\u8a0a\u606f', u'\u5132\u5b58\u5b8c\u6210')

@@ -5,17 +5,20 @@ import filelist
 import collections
 import time
 import logging
+import os
 
 logger = logging.getLogger( __name__ )
 
 class ParserController:
-    def __init__(self, paths, sleep, logger, callback, designatedYears):
+    def __init__(self, paths, sleep, logger, callback, designatedYears, filterCompanies):
         self.paths=paths
         self.companies=collections.OrderedDict({})
+        self.failed_companies = collections.OrderedDict({})
         self.logger = logger
         self.callback = callback
         self.sleep = sleep
         self.designatedYears = designatedYears
+        self.filterCompanies = filterCompanies
         self.isRunning = False
         self.__load__()
 
@@ -39,8 +42,8 @@ class ParserController:
 
         for file, companyCollection in self.companies.items():
             writer = writeexcel.CompanyDataWriter(file.replace(".html", ".xlsx"))
-            i=0
 
+            failedCompanies = []
             if not self.isRunning:
                 self.logger("Interrupted by user. Abort")
                 break
@@ -49,6 +52,9 @@ class ParserController:
                 if not self.isRunning:
                     self.logger("Interrupted by user. Abort")
                     break
+
+                if self.filterCompanies and company.id not in self.filterCompanies:
+                    continue
 
                 self.logger("===============================")
                 self.logger("Begin to parse company data:" + company.name)
@@ -61,13 +67,14 @@ class ParserController:
                     self.logger("End to parse " + company.name)
 
                 except Exception as e:
+                    failedCompanies.append(company)
                     self.logger("Failed to parse " + company.name)
                     self.logger(str(e))
 
                 time.sleep(self.sleep)
-                i = i+1
-                #if i>4:
-                #    break
+
+            if failedCompanies:
+                self.failed_companies[file]=failedCompanies
 
             self.logger("Writing to excel ...........................")
             writer.save()
@@ -76,12 +83,20 @@ class ParserController:
         self.isRunning = False
         self.callback()
 
-
     def parseHierarchyData(self):
+        self.__parseHierarchyData__(self.companies)
+
+    def parseHierarchyDataForFailedCompanies(self):
+        failedCompanies = collections.OrderedDict(self.failed_companies)
+        self.failed_companies.clear()
+        self.__parseHierarchyData__(failedCompanies)
+
+    def __parseHierarchyData__(self, companiesDict):
+
         self.isRunning = True
 
-        i = 0
-        for file, companyCollection in self.companies.items():
+        for file, companyCollection in companiesDict.items():
+            failedCompanies = []
             if not self.isRunning:
                 self.logger("Interrupted by user. Abort")
                 break
@@ -91,6 +106,9 @@ class ParserController:
                 if not self.isRunning:
                     self.logger("Interrupted by user. Abort")
                     break
+
+                if self.filterCompanies and company.id not in self.filterCompanies:
+                    continue
 
                 self.logger("===============================")
                 self.logger("Begin to parse company hierarchy:" + company.name)
@@ -103,6 +121,7 @@ class ParserController:
                     self.__writeHierarchy__(company, hierarchy)
                     self.logger("End to parse " + company.name)
                 except Exception as e:
+                    failedCompanies.append(company)
                     logger.debug("Get exception")
                     self.logger("Failed to parse " + company.name)
                     self.logger(str(e))
@@ -110,9 +129,8 @@ class ParserController:
                 logger.debug("Before sleep")
                 time.sleep(self.sleep)
 
-                i = i + 1
-                #if i > 5:
-                #    break
+            if failedCompanies:
+                self.failed_companies[file]=failedCompanies
 
         self.isRunning = False
         self.callback()
@@ -125,6 +143,19 @@ class ParserController:
     def __writeHierarchy__(self, company, result):
         writer = writeexcel.HierarchyWriter()
         writer.write(company, result)
+
+    def saveFailedCompanies(self):
+        for file, companyCollection in self.failed_companies.items():
+            output = []
+
+            for company in companyCollection:
+                output.append(company.id)
+
+            file_ = open(file + "-failed.txt", 'w')
+            file_.write(",".join(output))
+            file_.close()
+
+
 
 
 
