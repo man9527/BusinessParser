@@ -3,18 +3,20 @@ import collections
 import logging
 import hierarchyparser
 import Connector
+import time
 
 logger = logging.getLogger( 'first_logging' )
 
 class CompanyDataParser:
 
-    def __init__(self, url, designatedYears):
+    def __init__(self, url, designatedYears, sleepYear=0):
         self.url=url
 
         self.d = pq(Connector.get(self.url))
 
         self.realYears = []
         self.__parseYear__()
+        self.sleepYear = sleepYear
 
         if not designatedYears:
             self.years = self.realYears
@@ -42,6 +44,9 @@ class CompanyDataParser:
                 "https://www.corporateaffiliations.com" + url)
             result = h.parse()
             data[year]=result
+            logger.debug("sleep ...")
+            time.sleep(self.sleepYear)
+            logger.debug("sleep done ...")
 
         return data
 

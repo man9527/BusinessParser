@@ -10,13 +10,14 @@ import os
 logger = logging.getLogger( __name__ )
 
 class ParserController:
-    def __init__(self, paths, sleep, logger, callback, designatedYears, filterCompanies):
+    def __init__(self, paths, sleep, sleepYear, logger, callback, designatedYears, filterCompanies):
         self.paths=paths
         self.companies=collections.OrderedDict({})
         self.failed_companies = collections.OrderedDict({})
         self.logger = logger
         self.callback = callback
         self.sleep = sleep
+        self.sleepYear = sleepYear
         self.designatedYears = designatedYears
         self.filterCompanies = filterCompanies
         self.isRunning = False
@@ -115,7 +116,7 @@ class ParserController:
                 self.logger("Url:" + company.url)
 
                 try:
-                    parser = companydataparser.CompanyDataParser(company.url, self.designatedYears)
+                    parser = companydataparser.CompanyDataParser(company.url, self.designatedYears, self.sleepYear)
                     hierarchy = parser.parseHierarchy()
                     logger.debug("Get parse result")
                     self.__writeHierarchy__(company, hierarchy)

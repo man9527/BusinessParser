@@ -118,6 +118,12 @@ class MainWindow:
         self.sleepEntry.insert(END, '1')
         Label(optionFrame5, text=u'\u79d2\u6293\u4e0b\u4e00\u500b\u516c\u53f8', bg="#e1ffd6").pack(side=LEFT)
 
+        Label(optionFrame5, text=u'    \u5e74\u8207\u5e74\u9593\u9694', bg="#e1ffd6").pack(side=LEFT)
+        self.sleepYearEntry = Entry(optionFrame5, width=3)
+        self.sleepYearEntry.pack(side=LEFT)
+        self.sleepYearEntry.insert(END, '1')
+        Label(optionFrame5, text=u'\u79d2', bg="#e1ffd6").pack(side=LEFT)
+
         optionFrame4 = Frame(parentFrame)
         optionFrame4.configure(borderwidth=3, bg="#e1ffd6");
         optionFrame4.pack(side=TOP, fill=BOTH)
@@ -220,14 +226,19 @@ class MainWindow:
         if not self.sleepEntry.get():
             sleep=0
         else:
-            sleep=int(self.sleepEntry.get())
+            sleep=float(self.sleepEntry.get())
+
+        if not self.sleepYearEntry.get():
+            sleepYear=0
+        else:
+            sleepYear=float(self.sleepYearEntry.get())
 
         filterCompanies = []
 
         if self.filter_company_entry.get(1.0, END).rstrip():
             filterCompanies = self.filter_company_entry.get(1.0, END).rstrip().split(",")
 
-        self.controller = controller.ParserController([self.fileEntry.get()], sleep, self.logProgress, self.doNothing, nums, filterCompanies)
+        self.controller = controller.ParserController([self.fileEntry.get()], sleep, sleepYear, self.logProgress, self.doNothing, nums, filterCompanies)
 
         self.t = Thread(
             target=self.__startInternal__)
