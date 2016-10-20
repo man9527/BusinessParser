@@ -1,5 +1,6 @@
 import collections
 import os
+import re
 from openpyxl import Workbook
 from openpyxl.styles import colors, PatternFill
 from openpyxl.styles import Font, Alignment
@@ -243,4 +244,4 @@ class HierarchyWriter:
 
         dir_path = os.path.dirname(os.path.realpath(company.exportFileName))
 
-        wb.save( os.path.join(dir_path, ultimate_company_name + ".xlsx"))
+        wb.save( os.path.join(dir_path, re.sub(r'[\\/*?:"<>|]',"",ultimate_company_name) + ".xlsx"))

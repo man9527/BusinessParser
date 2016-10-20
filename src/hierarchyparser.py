@@ -39,16 +39,27 @@ class HierarchyParser:
 
                 if (companyName==""):
                     temp = td2(".selected").text()
-                    companyName = temp[0:temp.index("(")]
-                    location = temp[temp.index("("):]
+
+                    if temp.rfind("(")>0:
+                        companyName = temp[0:temp.rfind("(")]
+                        location = temp[temp.rfind("("):]
+                    else:
+                        companyName = temp
+                        location = ""
                 else:
                     location=td2(".location").text()
 
-                city=location[1:location.index(", ")]
-                state=location[location.index(", ")+2:-1]
+                if location:
+                    city=location[1:location.index(", ")]
+                    state=location[location.index(", ")+2:-1]
+                else:
+                    city=""
+                    state=""
+
                 type = (td2("a").attr("title"))
 
                 current = domainjob.HNode(companyId, type, tdCount, companyName, city, state)
+                logger.debug(companyName)
                 self.results.append(current)
 
         logger.debug("end parse element")
