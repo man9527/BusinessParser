@@ -41,8 +41,15 @@ class HierarchyParser:
                     temp = td2(".selected").text()
 
                     if temp.rfind("(")>0:
-                        companyName = temp[0:temp.rfind("(")]
-                        location = temp[temp.rfind("("):]
+                        temp1 = temp[0:temp.rfind(",")]
+                        temp2 = temp[temp.rfind(","):]
+
+                        companyName = temp1[0:temp1.rfind("(")]
+                        tcity = temp1[temp1.rfind("("):]
+                        tcountry = temp2[temp2.rfind(","):].strip()
+
+                        location = tcity + tcountry
+
                     else:
                         companyName = temp
                         location = ""
@@ -50,8 +57,8 @@ class HierarchyParser:
                     location=td2(".location").text()
 
                 if location:
-                    city=location[1:location.index(", ")]
-                    state=location[location.index(", ")+2:-1]
+                    city = location[1:location.rfind(",")].strip()
+                    state = location[location.rfind(",") + 1:location.rfind(")")].strip()
                 else:
                     city=""
                     state=""
@@ -81,5 +88,6 @@ class HierarchyParser:
                     current.parent=parent[str(current.levelCount)]
 
             prev=current
+
         logger.debug("end build relation")
         return (self.results)

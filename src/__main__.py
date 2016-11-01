@@ -24,8 +24,8 @@ def main(args=None):
     #parser.load()
     #parser.parse(1)
 
-    #h=hierarchyparser.HierarchyParser("https://www.corporateaffiliations.com/HierarchyByYear.aspx?pid=1941770000&cid=1941770000&year=2011")
-    #h.parse()
+    # h=hierarchyparser.HierarchyParser("http://www.cyberlink.com")
+    # h.parse()
 
     #parserController = controller.ParserController(["/Users/man9527/Downloads/2836"])
     #parserController.run()

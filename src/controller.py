@@ -5,7 +5,6 @@ import filelist
 import collections
 import time
 import logging
-import os
 
 logger = logging.getLogger( __name__ )
 
@@ -42,7 +41,7 @@ class ParserController:
         self.isRunning = True
 
         for file, companyCollection in self.companies.items():
-            writer = writeexcel.CompanyDataWriter(file.replace(".html", ".xlsx"))
+            writer = writeexcel.CompanyDataWriter(file.replace(".html", ""))
 
             failedCompanies = []
             if not self.isRunning:
@@ -152,7 +151,7 @@ class ParserController:
             for company in companyCollection:
                 output.append(company.id)
 
-            file_ = open(file + "-failed.txt", 'w')
+            file_ = open(file + "-failed-" + time.strftime("%Y%m%d-%H%M%S") + ".txt", 'w')
             file_.write(",".join(output))
             file_.close()
 

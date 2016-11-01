@@ -27,13 +27,28 @@ class CompanyDataParser:
 
         result = collections.OrderedDict({})
 
+        yearCheck = dict()
+
         for y in self.years:
             if y in self.realYears:
-                index = self.realYears.index(y)+1
-                result[y]=(self.__parseData__(index))
+                yearIndex = self.getIndex(yearCheck, y)
+                index = self.realYears.index(y) + yearIndex +1
+
+                if yearIndex > 0:
+                    result[y + "." + str(yearIndex)] = (self.__parseData__(index))
+                else:
+                    result[y]=(self.__parseData__(index))
 
         logger.debug(result)
         return result
+
+    def getIndex(self, yearCheck, year):
+        if year in yearCheck:
+            yearCheck[year] = yearCheck[year]+1
+        else:
+            yearCheck[year] = 0
+
+        return yearCheck[year]
 
     def parseHierarchy(self):
         data = collections.OrderedDict({})
@@ -74,18 +89,22 @@ class CompanyDataParser:
                         colspan+=int(e.attr("colspan"))
 
                     if (colspan>=yearIndex):
-                        value=e.html()
+                        value=pq(unicode(str(e), errors='ignore')).html()
                         break
+
+                if value=="":
+                    data[name] = value
+                    continue
 
                 if (pq(value).children("strong").length>0):
                     if (name.startswith("sic")):
                         function = pq(value).children("strong").text()
                         data[name]=function
-                    if (name.startswith("outside firm")):
+                    elif (name.startswith("outside firm")):
                         data["function " + name] = (str(pq(value).children().next()).replace("<br/>", ""))
                         function = pq(value).children("strong").text()
                         data[name] = function
-                    if (name.startswith("stock exchange")):
+                    elif (name.startswith("stock exchange")):
                         value = pq(value).text()
                         data[name] = value
                     else:

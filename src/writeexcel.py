@@ -1,6 +1,7 @@
 import collections
 import os
 import re
+import time
 from openpyxl import Workbook
 from openpyxl.styles import colors, PatternFill
 from openpyxl.styles import Font, Alignment
@@ -20,7 +21,9 @@ class CompanyDataWriter:
         self.headers["ultimate parent name"] = "Ultimate Parent Name"
         self.headers["ult. parent hierarchy"] = "Ult. Parent Hierarchy"
         self.headers["street"] = "Street"
+        self.headers["zone 1"] = "Zone 1"
         self.headers["city"] = "City"
+        self.headers["zone 2"] = "Zone 2"
         self.headers["state"] = "State"
         self.headers["zip"] = "Zip"
         self.headers["province"] = "Province"
@@ -28,6 +31,7 @@ class CompanyDataWriter:
         self.headers["state incorporated"] = "State Incorporated"
         self.headers["percent owned by parent"] = "Percent Owned By Parent"
         self.headers["fiscal year end"] = "Fiscal Year End"
+        self.headers["phone"] = "Phone"
         self.headers["sales"] = "Sales"
         self.headers["assets"] = "Assets"
         self.headers["liabilities"] = "Liabilities"
@@ -73,7 +77,7 @@ class CompanyDataWriter:
             row=[]
             row.append(company.id)
             row.append(data["company name"])
-            row.append(year)
+            row.append(year.split(".")[0])
 
             for key, value in self.headers.items():
                 if key != "ID" and key != "company name" and key != "YEAR":
@@ -153,7 +157,8 @@ class CompanyDataWriter:
         for col, value in dims.items():
             self.ws.column_dimensions[col].width = value
 
-        self.wb.save(self.fileName)
+        self.wb.save(self.fileName + "-"+ time.strftime("%Y%m%d-%H%M%S") + ".xlsx"
+)
 
 
 class HierarchyWriter:
@@ -244,4 +249,10 @@ class HierarchyWriter:
 
         dir_path = os.path.dirname(os.path.realpath(company.exportFileName))
 
-        wb.save( os.path.join(dir_path, re.sub(r'[\\/*?:"<>|]',"",ultimate_company_name) + ".xlsx"))
+        filename = os.path.join(dir_path, re.sub(r'[\\/*?:"<>|]',"",ultimate_company_name) + ".xlsx")
+        index=0
+        while(os.path.exists(filename)):
+            index+=1
+            filename = os.path.join(dir_path, re.sub(r'[\\/*?:"<>|]', "", ultimate_company_name) + "(" + str(index) + ").xlsx")
+
+        wb.save( filename )
