@@ -328,7 +328,7 @@ class MainWindow:
             self.retry_button.config(state="active")
             self.save_button.config(state="active")
             tkMessageBox.showwarning(u'\u8a0a\u606f', u'\u5de5\u4f5c\u5b8c\u6210\u3002\u4f46\u6709\u672a\u80fd\u6210\u529f\u6293\u53d6\u7684\u516c\u53f8\uff0c\u53ef\u57f7\u884c\u91cd\u6293\u3002')
-            self.controller.saveFailedCompanies()
+            # self.controller.saveFailedCompanies()
 
     def saveFailedCompanies(self):
         if self.controller and self.controller.failed_companies:

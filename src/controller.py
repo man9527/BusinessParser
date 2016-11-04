@@ -75,6 +75,7 @@ class ParserController:
 
             if failedCompanies:
                 self.failed_companies[file]=failedCompanies
+                self.saveSingleFailedCompanies(file, failedCompanies)
 
             self.logger("Writing to excel ...........................")
             writer.save()
@@ -131,6 +132,7 @@ class ParserController:
 
             if failedCompanies:
                 self.failed_companies[file]=failedCompanies
+                self.saveSingleFailedCompanies(file, failedCompanies)
 
         self.isRunning = False
         self.callback()
@@ -155,6 +157,15 @@ class ParserController:
             file_.write(",".join(output))
             file_.close()
 
+    def saveSingleFailedCompanies(self, file, companyCollection):
+         output = []
+
+         for company in companyCollection:
+             output.append(company.id)
+
+         file_ = open(file + "-failed-" + time.strftime("%Y%m%d-%H%M%S") + ".txt", 'w')
+         file_.write(",".join(output))
+         file_.close()
 
 
 

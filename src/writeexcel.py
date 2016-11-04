@@ -136,11 +136,11 @@ class CompanyDataWriter:
         for i in range(1,self.rowCount+1):
             self.ws.cell(row=i, column=1).font = ft_red;
 
-        for col in ["Y", "Z", "AA", "AB", "AC", "AD", "AE", "AF", "AG", "AH"]:
+        for col in ["AB", "AC", "AD", "AE", "AF", "AG", "AH", "AI", "AJ", "AK"]:
             for i in range(1,self.rowCount+1):
                 self.ws.cell(col+str(i)).alignment = Alignment(wrapText=True, vertical="top");
 
-        for col in ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X"]:
+        for col in ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","AA"]:
             for i in range(1,self.rowCount+1):
                 self.ws.cell(col+str(i)).alignment = Alignment(vertical="top");
 

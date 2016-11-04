@@ -12,7 +12,9 @@ class CompanyDataParser:
     def __init__(self, url, designatedYears, sleepYear=0):
         self.url=url
 
-        self.d = pq(Connector.get(self.url))
+        pageHtml = Connector.get(self.url)
+
+        self.d = pq(pageHtml.decode(encoding='UTF-8',errors='ignore'))
 
         self.realYears = []
         self.__parseYear__()
@@ -81,6 +83,7 @@ class CompanyDataParser:
                 colspan=0
 
                 for e in tdEleRemain:
+                    originalE = e
                     e = pq(e)
 
                     if (e.attr("colspan")==None):
@@ -120,6 +123,18 @@ class CompanyDataParser:
 
         return data
 
+    def stringify_children(self, node):
+        from lxml.etree import tostring
+        from itertools import chain
+
+        for x in node.itertext():
+            pass
+
+        parts = ([node.text] +
+                 list(chain(*([c.text, tostring(c), c.tail] for c in node.getchildren()))) +
+                 [node.tail])
+        # filter removes possible Nones in texts and tails
+        return ''.join(filter(None, parts))
 
     def __parseYear__(self):
         p = self.d("#tablecol > tbody")
